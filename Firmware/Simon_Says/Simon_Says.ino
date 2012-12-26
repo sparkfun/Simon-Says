@@ -1,43 +1,45 @@
-/**
- * 6-19-2007
- * Copyright 2009, Spark Fun Electronics
- * Nathan Seidle
- * nathan at sparkfun.com
- *
- * Released under the Creative Commons Attribution Share-Alike 3.0 License
- * http://creativecommons.org/licenses/by-sa/3.0
- *
- * Simon Game ported for the ATmega168
- *
- * Fixes and cleanup by Joshua Neal <joshua[at]trochotron.com>
- *
- * Generates random sequence, plays music, and displays button lights.
- *
- * Simon tones from Wikipedia
- * - A (red, upper left) - 440Hz - 2.272ms - 1.136ms pulse
- * - a (green, upper right, an octave higher than A) - 880Hz - 1.136ms,
- *   0.568ms pulse
- * - D (blue, lower left, a perfect fourth higher than the upper left) 
- *   587.33Hz - 1.702ms - 0.851ms pulse
- *   G (yellow, lower right, a perfect fourth higher than the lower left) - 
- *   784Hz - 1.276ms - 0.638ms pulse
- *
- * The tones are close, but probably off a bit, but they sound all right.
- *   
- * The old version of SparkFun simon used an ATmega8. An ATmega8 ships
- * with a default internal 1MHz oscillator.  You will need to set the
- * internal fuses to operate at the correct external 16MHz oscillator.
- *
- * Original Fuses:
- * avrdude -p atmega8 -P lpt1 -c stk200 -U lfuse:w:0xE1:m -U hfuse:w:0xD9:m
- *
- * Command to set to fuses to use external 16MHz: 
- * avrdude -p atmega8 -P lpt1 -c stk200 -U lfuse:w:0xEE:m -U hfuse:w:0xC9:m
- *
- * The current version of Simon uses the ATmega168. The external osciallator
- * was removed to reduce component count.  This version of simon relies on the
- * internal default 1MHz osciallator. Do not set the external fuses.
- */
+/*
+ Started: 6-19-2007
+ Spark Fun Electronics
+ Nathan Seidle
+
+ Simon Says is a memory game. Start the game by pressing one of the four buttons. When a button lights up, 
+ press the button, repeating the sequence. The sequence will get longer and longer. The game is won after 
+ 13 rounds.
+
+ This code is public domain but you buy me a beer if you use this and we meet someday (Beerware license).
+ 
+ Simon Says game originally written in C for the PIC16F88.
+ Ported for the ATmega168, then ATmega328, then Arduino 1.0.
+ Fixes and cleanup by Joshua Neal <joshua[at]trochotron.com>
+ 
+ Generates random sequence, plays music, and displays button lights.
+ 
+ Simon tones from Wikipedia
+ - A (red, upper left) - 440Hz - 2.272ms - 1.136ms pulse
+ - a (green, upper right, an octave higher than A) - 880Hz - 1.136ms,
+   0.568ms pulse
+ - D (blue, lower left, a perfect fourth higher than the upper left) 
+   587.33Hz - 1.702ms - 0.851ms pulse
+ - G (yellow, lower right, a perfect fourth higher than the lower left) - 
+   784Hz - 1.276ms - 0.638ms pulse
+ 
+ The tones are close, but probably off a bit, but they sound all right.
+   
+ The old version of SparkFun simon used an ATmega8. An ATmega8 ships
+ with a default internal 1MHz oscillator.  You will need to set the
+ internal fuses to operate at the correct external 16MHz oscillator.
+ 
+ Original Fuses:
+ avrdude -p atmega8 -P lpt1 -c stk200 -U lfuse:w:0xE1:m -U hfuse:w:0xD9:m
+ 
+ Command to set to fuses to use external 16MHz: 
+ avrdude -p atmega8 -P lpt1 -c stk200 -U lfuse:w:0xEE:m -U hfuse:w:0xC9:m
+ 
+ The current version of Simon uses the ATmega328. The external osciallator
+ was removed to reduce component count.  This version of simon relies on the
+ internal default 1MHz osciallator. Do not set the external fuses.
+*/
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -45,8 +47,7 @@
 /* Uncomment one of the following, corresponding to the board you have. */
 //#define BOARD_REV_6_25_08
 // #define BOARD_REV_4_9_2009
-//#define BOARD_REV_6_3_2009
-#define BOARD_REV_PTH
+ #define BOARD_REV_PTH
 
 #ifdef BOARD_REV_PTH
 
@@ -58,7 +59,7 @@
 #define LED_YELLOW	(1 << 3)
 
 /* LED pin definitions */
-#define LED_RED_PIN			2
+#define LED_RED_PIN		2
 #define LED_RED_PORT		PORTB
 #define LED_GREEN_PIN		3
 #define LED_GREEN_PORT		PORTD
@@ -124,6 +125,11 @@
 
 #ifdef BOARD_REV_4_9_2009
 
+#define LED_RED		(1 << 0)
+#define LED_GREEN	(1 << 1)
+#define LED_BLUE	(1 << 2)
+#define LED_YELLOW	(1 << 3)
+
 #define CHIP_ATMEGA168
 
 /* LED pin definitions */
@@ -154,44 +160,8 @@
 
 #endif  /* BOARD_REV_4_9_2009 */
 
-#ifdef BOARD_REV_6_3_2009
-
-#define CHIP_ATMEGA168
-
-#define LED_RED		(1 << 0)
-#define LED_GREEN	(1 << 1)
-#define LED_BLUE	(1 << 2)
-#define LED_YELLOW	(1 << 3)
-
-/* LED pin definitions */
-#define LED_RED_PIN			2
-#define LED_RED_PORT		PORTB
-#define LED_GREEN_PIN		2
-#define LED_GREEN_PORT		PORTD
-#define LED_BLUE_PIN		5
-#define LED_BLUE_PORT		PORTB
-#define LED_YELLOW_PIN		5
-#define LED_YELLOW_PORT		PORTD
-
-/* Button pin definitions */
-#define BUTTON_RED_PIN		0
-#define	BUTTON_RED_PORT		PINB
-#define BUTTON_GREEN_PIN	1
-#define	BUTTON_GREEN_PORT	PINB
-#define BUTTON_BLUE_PIN		7
-#define	BUTTON_BLUE_PORT	PIND
-#define BUTTON_YELLOW_PIN	6
-#define	BUTTON_YELLOW_PORT	PIND
-
-/* Buzzer pin definitions */
-#define BUZZER1		3
-#define BUZZER1_PORT	PORTD
-#define BUZZER2		4
-#define BUZZER2_PORT	PORTD
-
-#endif  /* BOARD_REV_6_3_2009 */
-
 /* Define game parameters */
+
 #define MOVES_TO_WIN	13
 #define TIME_LIMIT	3000		/* 3000ms = 3 sec */
 
@@ -212,6 +182,13 @@ void play_loser(void);
 void play_winner(void);
 void ioinit(void);      
 
+int battle = 0;
+
+///These ints are for the begees loop funtion to work
+int counter = 0;   // for cycling through the LEDs during the beegees loop
+int count = 20; // for keeping rhythm straight in the beegees loop
+//////////////
+
 /* Game state */
 uint8_t moves[32];
 uint8_t nmoves = 0;
@@ -231,8 +208,7 @@ ISR (SIG_OVERFLOW2)
 
 /* General short delays, using internal timer do a fairly accurate 1us */
 #ifdef CHIP_ATMEGA168
-void
-delay_us(uint16_t delay)
+void delay_us(uint16_t delay)
 {
   while (delay > 256)
   {
@@ -415,8 +391,7 @@ winner_sound(void)
 }
 
 /* Play the winner sound and lights */
-void
-play_winner(void)
+void play_winner(void)
 {
   set_leds(LED_GREEN|LED_BLUE);
   winner_sound();
@@ -429,8 +404,7 @@ play_winner(void)
 }
 
 /* Plays the current contents of the game moves */
-void
-play_moves(void)
+void play_moves(void)
 {
   uint8_t move;
 
@@ -441,8 +415,7 @@ play_moves(void)
 }
 
 /* Adds a new random button to the game sequence, by sampling the timer */
-void
-add_to_moves(void)
+void add_to_moves(void)
 {
   uint8_t new_button;
 
@@ -452,9 +425,21 @@ add_to_moves(void)
   moves[nmoves++] = new_button;
 }
 
+/* Adds a user defined button to the game sequence, by waiting for their input */
+void add_to_moves_battle(void)
+{  
+  uint8_t new_button;
+
+  /* wait for user to input next move */
+  new_button = wait_for_button();
+        
+  toner(new_button, 150);
+
+  moves[nmoves++] = new_button;
+}
+
 /* Toggle buzzer every buzz_delay_us, for a duration of buzz_length_ms. */
-void 
-buzz_sound(uint16_t buzz_length_ms, uint16_t buzz_delay_us)
+void buzz_sound(uint16_t buzz_length_ms, uint16_t buzz_delay_us)
 {
   uint32_t buzz_length_us;
 
@@ -473,7 +458,6 @@ buzz_sound(uint16_t buzz_length_ms, uint16_t buzz_delay_us)
   }
 }
 
-
 /*
  * Light an LED and play tone
  *
@@ -482,8 +466,7 @@ buzz_sound(uint16_t buzz_length_ms, uint16_t buzz_delay_us)
  * blue, lower left:    587.33Hz - 1.702ms - 0.851ms pulse
  * yellow, lower right: 784Hz - 1.276ms - 0.638ms pulse
  */
-void
-toner(uint8_t which, uint16_t buzz_length_ms)
+void toner(uint8_t which, uint16_t buzz_length_ms)
 {
   set_leds(which);
   switch (which) {
@@ -509,8 +492,7 @@ toner(uint8_t which, uint16_t buzz_length_ms)
 }
 
 /* Show an "attract mode" display while waiting for user to press button. */
-void
-attract_mode(void)
+void attract_mode(void)
 {
   while (1) {
     set_leds(LED_RED);
@@ -538,8 +520,7 @@ attract_mode(void)
 
 /* Wait for a button to be pressed.  Returns one of led colors (LED_RED, etc.)
  * if successful, 0 if timed out */
-uint8_t
-wait_for_button(void)
+uint8_t wait_for_button(void)
 {
   uint16_t time_limit = TIME_LIMIT;
   uint8_t released = 0;
@@ -578,16 +559,20 @@ wait_for_button(void)
 
 
 /* Play the game.   Returns 0 if player loses, or 1 if player wins. */
-int
-game_mode(void)
+int game_mode(void)
 {
   nmoves = 0;
-  while (nmoves < MOVES_TO_WIN) {
+  int moves_to_win_var = MOVES_TO_WIN; // If in normal mode, then allow the user to win after a #define varialb up top (default is 13).
+  if(battle) moves_to_win_var = 1000; // If in battle mode, allow the users to go up to 1000 moves! Like anyone could possibly do that :)
+  while (nmoves < moves_to_win_var) {
     uint8_t move;
 
     /* Add a button to the current moves, then play them back */
-    add_to_moves(); 
-    play_moves(); 
+    if(battle) add_to_moves_battle();     // If in battle mode, then listen for user input to choose the next step
+    else add_to_moves(); 
+    
+    if(battle) ;     // If in battle mode, then don't play back the pattern, it's up the the users to remember it - then add on a move.
+    else play_moves(); 
 
     /* Then require the player to repeat the sequence. */
     for (move = 0; move < nmoves; move++) {
@@ -606,7 +591,8 @@ game_mode(void)
     }
 
     /* Player was correct, delay before playing moves */
-    delay_ms(1000);
+    if(battle) delay_ms(100); // reduced wait time, because we want to allow the battle to go very fast! plus, if you use the delay(1000), then it may miss capturing the users next input.
+    else delay_ms(1000);
   }
 
   /* player wins */
@@ -615,6 +601,7 @@ game_mode(void)
 
 void setup()
 {
+
 }
 
 void loop()
@@ -622,7 +609,31 @@ void loop()
 
   /* Setup IO pins and defaults */
   ioinit(); 
-
+  
+  /* Check to see if LOWER LEFT BUTTON is pressed */
+  if (check_button() == LED_YELLOW){
+    while(1){
+      buzz(5);
+      delay_ms(750);      
+        if (check_button() == 0x00){
+             while (1) beegees_loop();  
+        }
+    }
+   }
+   
+  /* Check to see if LOWER RIGHT BUTTON is pressed */
+  if (check_button() == LED_GREEN){
+    while(1){
+      buzz(5);
+      delay_ms(750);      
+        if (check_button() == 0x00){
+        battle = 1;
+        break;  
+        }
+    }
+   }
+   
+   
   play_winner();
 
   /* Main loop */
@@ -647,6 +658,142 @@ void loop()
     }
   }
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+void beegees_loop(){
+buzz(3);
+delay(400);
+buzz(4);
+rest(1);
+delay(600);
+buzz(5);
+rest(1);
+rest(1);
+delay(400);
+buzz(3);
+rest(1);
+rest(1);
+rest(1);
+buzz(2);
+rest(1);
+buzz(1);
+buzz(2);
+buzz(3);
+rest(1);
+buzz(1);
+buzz(2);
+rest(1);
+buzz(3);
+rest(1);
+rest(1);   
+buzz(1);
+rest(1);
+buzz(2);
+rest(1);
+buzz(3);
+rest(1);
+buzz(4);
+rest(1);
+buzz(5);
+rest(1);
+delay(700);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+void buzz(int tone){
+  
+  ///declare an integer, "freq", for frequency of the note to be played.
+  int freq;
+  
+  ///5 different tones to select. Each tone is a different frequency.
+  if(tone == 1){
+  freq = 2000;
+  }
+  if(tone == 2){
+  freq = 1800;
+  }
+  if(tone == 3){
+  freq = 1500;
+  }
+  if(tone == 4){
+  freq = 1350;
+  }
+  if(tone == 5){
+  freq = 1110;
+  }
+  
+  //freq = (freq/2);
+  
+  /// Because frequency is determined by the wavelength (the time HIGH and the time LOW),
+  /// you need to have "count" in order to keep a note the same length in time.
+  /// "count" is the number of times this function will repeat the HIGH/LOW pattern - to create the sound of the note.
+  
+  count = 40;
+  
+  /// In order to keep all 5 notes the same length in time, you must compare them to the longest note (tonic)  - aka the "1" note.
+  count = count*(2000/freq);
+  
+  /// this next function simply changes the next LED to turn on.
+  change_led();
+  
+  /// this next for loop actually makes the buzzer pin move.
+  /// it uses the "count" variable to know how many times to play the frequency.
+  /// -this keeps the timing correct.
+  for(int i = 0; i < count; i++){
+  digitalWrite(BUZZER1, HIGH);
+  digitalWrite(BUZZER2, LOW);
+  delayMicroseconds(freq);
+  digitalWrite(BUZZER1, LOW);
+  digitalWrite(BUZZER2, HIGH);
+  delayMicroseconds(freq);
+  }
+  delay(60);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+ void rest(int tone){
+  int freq;
+    if(tone == 1){
+    freq = 2000;
+    }
+    if(tone == 2){
+    freq = 1800;
+    }
+    if(tone == 3){
+    freq = 1500;
+    }
+    if(tone == 4){
+    freq = 1350;
+    }
+    if(tone == 5){
+    freq = 1110;
+    }
+    //freq = (freq/2);
+    count = 40;
+ count = count*(2000/freq);
+//change_led(); 
+ for(int i = 0; i < count; i++){
+ digitalWrite(BUZZER1, LOW);
+ delayMicroseconds(freq);
+  digitalWrite(BUZZER1, LOW);
+ delayMicroseconds(freq);
+ }
+  delay(75);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+void change_led(){
+   if(counter > 3){
+     counter = 0; 
+   }
+   set_leds(1 << counter);
+   counter += 1;
+}
+
+
+
 
 
 
