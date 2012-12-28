@@ -227,7 +227,7 @@ void play_loser(void)
 // Play the winner sound
 void winner_sound(void)
 {
-  uint8_t x, y;
+  byte x, y;
 
   // Toggle the buzzer at various speeds
   for (x = 250; x > 70; x--) {
