@@ -44,31 +44,134 @@
 #include "hardware_versions.h"
 
 // Define game parameters
-#define MOVES_TO_WIN	13
-#define TIME_LIMIT	3000 //3000ms = 3 sec
+#define MOVES_TO_WIN       13 //Number of rounds to succesfully remember before you win. 13 is do-able.
+#define ENTRY_TIME_LIMIT   3000 //Amount of time to press a button before game times out. 3000ms = 3 sec
 
-#define sbi(port_name, pin_number)  (port_name |= 1<<pin_number)
-#define cbi(port_name, pin_number)  ((port_name) &= (uint8_t)~(1 << pin_number))
+#define MODE_MEMORY  0
+#define MODE_BATTLE  1
+#define MODE_BEEGEES 2
 
-int battle = 0;
-
-///These ints are for the begees loop funtion to work
-int counter = 0;   // for cycling through the LEDs during the beegees loop
-int count = 20; // for keeping rhythm straight in the beegees loop
-//////////////
+int gameMode = MODE_MEMORY; //By default, let's play the memory game
 
 // Game state variables
 uint8_t moves[32];
 uint8_t nmoves = 0;
 
 //Timer 2 overflow ISR
-ISR (SIG_OVERFLOW2) 
+/*ISR (SIG_OVERFLOW2) 
 {
   // Prescalar of 1024, Clock = 16MHz, 15,625 clicks per second, 64us per click	
 
   // Preload timer 2 for 125 clicks. Should be 8ms per ISR call
-  TCNT2 = 131; 		//256 - 125 = 131
+  TCNT2 = 131; //256 - 125 = 131
+}*/
+
+void setup()
+{
+  
+  init_gpio();
+
+  randomSeed(analogRead(0)); //Seed the random generator with noise on pin A0
+
+/*
+  //Set Timer 0 Registers to Default Setting to over-ride the timer initialization made in the init() function of the \
+  //Arduino Wiring library (Wiring.c in the hardware/core/arduino folder)
+  TCCR0A = 0;
+  TIMSK0 = 0;
+  // Init timer 0 for delay_us timing (1,000,000 / 1 = 1,000,000)
+  //TCCR0B = (1<<CS00); // Set Prescaler to 1. CS00=1
+  TCCR0B = (1<<CS01); // Set Prescaler to 1. CS00=1
+
+    // Init timer 2
+  ASSR = 0;
+  // Set Prescaler to 1024. CS22=1, CS21=1, CS20=1
+  TCCR2B = (1<<CS22)|(1<<CS21)|(1<<CS20); 
+  TIMSK2 = (1<<TOIE2); // Enable Timer 2 Interrupt
+
+  cli();  //We don't use any interrupt functionality. Let's turn it off so Arduino doesn't screw around with it!
+*/
+
+  Serial.begin(9600);
+  Serial.println("Welcome to Simon Says!");
+/*  
+  //Mode checking
+  // Check to see if the lower right button is pressed
+  if (checkButton() == CHOICE_YELLOW)
+  {
+    gameMode = MODE_BEEGEES;
+    
+    //Turn on the yellow LED
+    setLEDs(CHOICE_YELLOW);
+    
+    while(checkButton() != CHOICE_NONE) ; //Wait for user to stop pressing button
+    delay(100);
+    
+    while(checkButton() == CHOICE_NONE)
+    {
+      //buzz(5);
+      //delay(750);      
+      //if (checkButton() == CHOICE_NONE)
+      //{
+        //while (1) 
+        playBeegees();  
+      //}
+    }
+  }
+
+  // Check to see if LOWER RIGHT BUTTON is pressed
+  if (checkButton() == CHOICE_GREEN)
+  {
+    gameMode = MODE_BATTLE;
+
+    //Turn on the green LED
+    setLEDs(CHOICE_GREEN);
+    
+    while(checkButton() != CHOICE_NONE) ; //Wait for user to stop pressing button
+    
+    //Now do nothing. Battle mode will be serviced in the main routine
+    
+    /*delay(100);
+    
+    while(1)
+    {
+      buzz(5);
+      delay(750);      
+      if (checkButton() == CHOICE_NONE){
+        battle = 1;
+        break;  
+      }
+    }
+    */
+  //}
+  play_winner();
 }
+
+void loop()
+{
+  // Wait for user to start game
+  attractMode();
+
+  // Indicate the start of game play
+  setLEDs(CHOICE_RED|CHOICE_GREEN|CHOICE_BLUE|CHOICE_YELLOW);
+  delay(1000);
+  setLEDs(CHOICE_OFF);
+  delay(250);
+
+  // Play game and handle result
+  if (game_mode() != 0) 
+  {
+    // Player won, play winner tones
+    play_winner(); 
+  } 
+  else 
+  {
+    // Player lost, play loser tones
+    play_loser(); 
+  }
+}
+
+
+
 
 //General short delays, using internal timer do a fairly accurate 1us
 #ifdef CHIP_ATMEGA168
@@ -93,41 +196,29 @@ void delay_us(uint16_t delay)
 }
 #endif
 
-//General short delays
-void delay_ms(uint16_t x)
+//Lights a given LEDs
+//Pass in a byte that is made up from CHOICE_RED, CHOICE_YELLOW, etc
+void setLEDs(byte leds)
 {
-  while (x-- > 0) {
-    delay_us(1000);
-  }
-}
+  if ((leds & CHOICE_RED) != 0)
+    digitalWrite(LED_RED, HIGH);
+  else
+    digitalWrite(LED_RED, LOW);
+  
+  if ((leds & CHOICE_GREEN) != 0)
+    digitalWrite(LED_GREEN, HIGH);
+  else
+    digitalWrite(LED_GREEN, LOW);
 
-//Light the given set of LEDs
-void set_leds(uint8_t leds)
-{
-  if ((leds & LED_RED) != 0) {
-    sbi(LED_RED_PORT, LED_RED_PIN);
-  } 
-  else {
-    cbi(LED_RED_PORT, LED_RED_PIN);
-  }
-  if ((leds & LED_GREEN) != 0) {
-    sbi(LED_GREEN_PORT, LED_GREEN_PIN);
-  } 
-  else {
-    cbi(LED_GREEN_PORT, LED_GREEN_PIN);
-  }
-  if ((leds & LED_BLUE) != 0) {
-    sbi(LED_BLUE_PORT, LED_BLUE_PIN);
-  } 
-  else {
-    cbi(LED_BLUE_PORT, LED_BLUE_PIN);
-  }
-  if ((leds & LED_YELLOW) != 0) {
-    sbi(LED_YELLOW_PORT, LED_YELLOW_PIN);
-  } 
-  else {
-    cbi(LED_YELLOW_PORT, LED_YELLOW_PIN);
-  }
+  if ((leds & CHOICE_BLUE) != 0)
+    digitalWrite(LED_BLUE, HIGH);
+  else
+    digitalWrite(LED_BLUE, LOW);
+
+  if ((leds & CHOICE_YELLOW) != 0)
+    digitalWrite(LED_YELLOW, HIGH);
+  else
+    digitalWrite(LED_YELLOW, LOW);
 }
 
 
@@ -154,93 +245,75 @@ void init_gpio(void)
   PORTB = 0b00000011; // Enable pull-ups on buttons 2, 3
   PORTD = 0b11000000; // Enable pull-up on button 0, 1
 }
-#endif  // End BOARD_REV_4_9_2009
+#endif // End BOARD_REV_4_9_2009
 
 #ifdef BOARD_REV_PTH
 void init_gpio(void)
 {
-  // 1 = output, 0 = input
-  DDRB = 0b11101101; // LEDs and Buttons
-  DDRC = 0b11111111; // LEDs and Buttons
-  DDRD = 0b10111011; // LEDs, buttons, buzzer, TX/RX
+  //Enable pull ups on inputs
+  pinMode(BUTTON_RED, INPUT_PULLUP);
+  pinMode(BUTTON_GREEN, INPUT_PULLUP);
+  pinMode(BUTTON_BLUE, INPUT_PULLUP);
+  pinMode(BUTTON_YELLOW, INPUT_PULLUP);
 
-  PORTB = 0b00010010; // Enable pull-ups on buttons 1, 4
-  //PORTC = 0b00100110; // Enable pull-ups on buttons 0, 2, 3
-  PORTD = 0b01000100; // Enable pull-up on button 1
+  pinMode(LED_RED, OUTPUT);
+  pinMode(LED_GREEN, OUTPUT);
+  pinMode(LED_BLUE, OUTPUT);
+  pinMode(LED_YELLOW, OUTPUT);
+  
+  pinMode(BUZZER1, OUTPUT);
+  pinMode(BUZZER2, OUTPUT);
 }
-#endif
+#endif // End BOARD_REV_PTH
 
-void ioinit(void)
+// Returns a '1' bit in the position corresponding to CHOICE_RED, CHOICE_GREEN, etc.
+byte checkButton(void)
 {
-  init_gpio();	
+  byte buttonPressed = CHOICE_NONE;
 
-  //Set Timer 0 Registers to Default Setting to over-ride the timer initialization made in the init() function of the \
-  //Arduino Wiring library (Wiring.c in the hardware/core/arduino folder)
-  TCCR0A = 0;
-  TIMSK0 = 0;
-  // Init timer 0 for delay_us timing (1,000,000 / 1 = 1,000,000)
-  //TCCR0B = (1<<CS00); // Set Prescaler to 1. CS00=1
-  TCCR0B = (1<<CS01); // Set Prescaler to 1. CS00=1
+  if (digitalRead(BUTTON_RED) == 0) buttonPressed |= CHOICE_RED; 
+  if (digitalRead(BUTTON_GREEN) == 0) buttonPressed |= CHOICE_GREEN; 
+  if (digitalRead(BUTTON_BLUE) == 0) buttonPressed |= CHOICE_BLUE; 
+  if (digitalRead(BUTTON_YELLOW) == 0) buttonPressed |= CHOICE_YELLOW;
 
-    // Init timer 2
-  ASSR = 0;
-  // Set Prescaler to 1024. CS22=1, CS21=1, CS20=1
-  TCCR2B = (1<<CS22)|(1<<CS21)|(1<<CS20); 
-  TIMSK2 = (1<<TOIE2); // Enable Timer 2 Interrupt
-
-  cli();  //We don't use any interrupt functionality. Let's turn it off so Arduino doesn't screw around with it!
-}
-
-// Returns a '1' bit in the position corresponding to LED_RED, etc.
-uint8_t check_button(void)
-{
-  uint8_t button_pressed = 0;
-
-  if ((BUTTON_RED_PORT & (1 << BUTTON_RED_PIN)) == 0)
-    button_pressed |= LED_RED; 
-  if ((BUTTON_GREEN_PORT & (1 << BUTTON_GREEN_PIN)) == 0)
-    button_pressed |= LED_GREEN; 
-  if ((BUTTON_BLUE_PORT & (1 << BUTTON_BLUE_PIN)) == 0)
-    button_pressed |= LED_BLUE; 
-  if ((BUTTON_YELLOW_PORT & (1 << BUTTON_YELLOW_PIN)) == 0)
-    button_pressed |= LED_YELLOW; 
-
-  return button_pressed;
+  return buttonPressed;
 }
 
 // Play the loser sound/lights
 void play_loser(void)
 {
-  set_leds(LED_RED|LED_GREEN);
+  setLEDs(CHOICE_RED|CHOICE_GREEN);
   buzz_sound(255, 1500);
 
-  set_leds(LED_BLUE|LED_YELLOW);
+  setLEDs(CHOICE_BLUE|CHOICE_YELLOW);
   buzz_sound(255, 1500);
 
-  set_leds(LED_RED|LED_GREEN);
+  setLEDs(CHOICE_RED|CHOICE_GREEN);
   buzz_sound(255, 1500);
 
-  set_leds(LED_BLUE|LED_YELLOW);
+  setLEDs(CHOICE_BLUE|CHOICE_YELLOW);
   buzz_sound(255, 1500);
 }
 
 // Play the winner sound
 void winner_sound(void)
 {
-  uint8_t x, y;
+  byte x, y;
 
   // Toggle the buzzer at various speeds
-  for (x = 250; x > 70; x--) {
-    for (y = 0; y < 3; y++) {
-      sbi(BUZZER2_PORT, BUZZER2);
-      cbi(BUZZER1_PORT, BUZZER1);
+  for (x = 250 ; x > 70 ; x--) {
+    for (y = 0 ; y < 3 ; y++) {
+      //sbi(BUZZER2_PORT, BUZZER2);
+      //cbi(BUZZER1_PORT, BUZZER1);
+      digitalWrite(BUZZER2, HIGH);
+      digitalWrite(BUZZER1, LOW);
+      delayMicroseconds(x);
 
-      delay_us(x);
-
-      cbi(BUZZER2_PORT, BUZZER2);
-      sbi(BUZZER1_PORT, BUZZER1);
-
-      delay_us(x);
+      //cbi(BUZZER2_PORT, BUZZER2);
+      //sbi(BUZZER1_PORT, BUZZER1);
+      digitalWrite(BUZZER2, LOW);
+      digitalWrite(BUZZER1, HIGH);
+      delayMicroseconds(x);
     }
   }
 }
@@ -248,36 +321,33 @@ void winner_sound(void)
 // Play the winner sound and lights
 void play_winner(void)
 {
-  set_leds(LED_GREEN|LED_BLUE);
+  setLEDs(CHOICE_GREEN|CHOICE_BLUE);
   winner_sound();
-  set_leds(LED_RED|LED_YELLOW);
+  setLEDs(CHOICE_RED|CHOICE_YELLOW);
   winner_sound();
-  set_leds(LED_GREEN|LED_BLUE);
+  setLEDs(CHOICE_GREEN|CHOICE_BLUE);
   winner_sound();
-  set_leds(LED_RED|LED_YELLOW);
+  setLEDs(CHOICE_RED|CHOICE_YELLOW);
   winner_sound();
 }
 
 // Plays the current contents of the game moves
 void play_moves(void)
 {
-  uint8_t move;
+  byte currentMove;
 
-  for (move = 0; move < nmoves; move++) {
-    toner(moves[move], 150);
-    delay_ms(150);
+  for (currentMove = 0 ; currentMove < nmoves ; currentMove++) 
+  {
+    toner(moves[currentMove], 150);
+    delay(150);
   }
 }
 
 // Adds a new random button to the game sequence, by sampling the timer
 void add_to_moves(void)
 {
-  uint8_t new_button;
-
-  // Use the lower 2 bits of the timer for the random value
-  new_button = 1 << (TCNT2 & 0x3);
-
-  moves[nmoves++] = new_button;
+  byte newButton = random(0, 3);
+  moves[nmoves++] = newButton; //Add this new button to the game array
 }
 
 // Adds a user defined button to the game sequence, by waiting for their input
@@ -294,6 +364,7 @@ void add_to_moves_battle(void)
 }
 
 // Toggle buzzer every buzz_delay_us, for a duration of buzz_length_ms.
+//Given a length and a 
 void buzz_sound(uint16_t buzz_length_ms, uint16_t buzz_delay_us)
 {
   uint32_t buzz_length_us;
@@ -303,13 +374,18 @@ void buzz_sound(uint16_t buzz_length_ms, uint16_t buzz_delay_us)
     buzz_length_us -= buzz_delay_us*2;
 
     // Toggle the buzzer at various speeds
-    cbi(BUZZER1_PORT, BUZZER1);
-    sbi(BUZZER2_PORT, BUZZER2);
-    delay_us(buzz_delay_us);
+    //cbi(BUZZER1_PORT, BUZZER1);
+    //sbi(BUZZER2_PORT, BUZZER2);
+    digitalWrite(BUZZER1, LOW);
+    digitalWrite(BUZZER2, HIGH);
+//    delay_us(buzz_delay_us);
+    delayMicroseconds(buzz_delay_us);
 
-    sbi(BUZZER1_PORT, BUZZER1);
-    cbi(BUZZER2_PORT, BUZZER2);
-    delay_us(buzz_delay_us);
+    //sbi(BUZZER1_PORT, BUZZER1);
+    //cbi(BUZZER2_PORT, BUZZER2);
+    digitalWrite(BUZZER1, HIGH);
+    digitalWrite(BUZZER2, LOW);
+    delayMicroseconds(buzz_delay_us);
   }
 }
 
@@ -322,52 +398,53 @@ void buzz_sound(uint16_t buzz_length_ms, uint16_t buzz_delay_us)
  */
 void toner(uint8_t which, uint16_t buzz_length_ms)
 {
-  set_leds(which);
+  setLEDs(which);
   switch (which) {
-  case LED_RED:
-    buzz_sound(buzz_length_ms, 1136); 
+  case CHOICE_RED:
+//    buzz_sound(buzz_length_ms, 1136); 
+    tone(BUZZER1, 440, buzz_length_ms);
     break;
 
-  case LED_GREEN:
-    buzz_sound(buzz_length_ms, 568); 
+  case CHOICE_GREEN:
+//    buzz_sound(buzz_length_ms, 568); 
+    tone(BUZZER1, 880, buzz_length_ms); 
     break;
 
-  case LED_BLUE:
-    buzz_sound(buzz_length_ms, 851); 
+  case CHOICE_BLUE:
+//    buzz_sound(buzz_length_ms, 851); 
+    tone(BUZZER1, 587, buzz_length_ms); 
     break;
 
-  case LED_YELLOW:
-    buzz_sound(buzz_length_ms, 638); 
+  case CHOICE_YELLOW:
+//    buzz_sound(buzz_length_ms, 638); 
+    tone(BUZZER1, 784, buzz_length_ms); 
     break;
   }
 
   // Turn off all LEDs
-  set_leds(0);
+  setLEDs(CHOICE_OFF);
 }
 
 // Show an "attract mode" display while waiting for user to press button.
-void attract_mode(void)
+void attractMode(void)
 {
-  while (1) {
-    set_leds(LED_RED);
-    delay_ms(100);
-    if (check_button() != 0x00)
-      return;
+  while(1) 
+  {
+    setLEDs(CHOICE_RED);
+    delay(100);
+    if (checkButton() != CHOICE_NONE) return;
 
-    set_leds(LED_BLUE);
-    delay_ms(100);
-    if (check_button() != 0x00) 
-      return;
+    setLEDs(CHOICE_BLUE);
+    delay(100);
+    if (checkButton() != CHOICE_NONE) return;
 
-    set_leds(LED_GREEN);
-    delay_ms(100);
-    if (check_button() != 0x00) 
-      return;
+    setLEDs(CHOICE_GREEN);
+    delay(100);
+    if (checkButton() != CHOICE_NONE) return;
 
-    set_leds(LED_YELLOW);
-    delay_ms(100);
-    if (check_button() != 0x00) 
-      return;
+    setLEDs(CHOICE_YELLOW);
+    delay(100);
+    if (checkButton() != CHOICE_NONE) return;
   }
 }
 
@@ -375,7 +452,7 @@ void attract_mode(void)
 // Returns one of led colors (LED_RED, etc.) if successful, 0 if timed out
 uint8_t wait_for_button(void)
 {
-  uint16_t time_limit = TIME_LIMIT;
+  uint16_t time_limit = ENTRY_TIME_LIMIT;
   uint8_t released = 0;
   uint8_t old_button;
 
@@ -384,22 +461,22 @@ uint8_t wait_for_button(void)
 
     // Implement a small bit of debouncing
     old_button = button;
-    button = check_button();
+    button = checkButton();
 
     // Make sure we've seen the previous button released before accepting new buttons
-    if (button == 0) 
+    if (button == CHOICE_NONE) 
       released = 1;
     if (button == old_button && released == 1) {
       // Make sure just one button is pressed
-      if (button == LED_RED || 
-        button == LED_BLUE ||
-        button == LED_GREEN || 
-        button == LED_YELLOW) {
+      if (button == CHOICE_RED || 
+        button == CHOICE_BLUE ||
+        button == CHOICE_GREEN || 
+        button == CHOICE_YELLOW) {
         return button;
       }
     }
 
-    delay_ms(1);
+    delay(1);
 
     time_limit--; 
   }
@@ -412,26 +489,24 @@ int game_mode(void)
   nmoves = 0;
   int moves_to_win_var = MOVES_TO_WIN; // If in normal mode, then allow the user to win after a #define varialb up top (default is 13).
 
-  if(battle) moves_to_win_var = 1000; // If in battle mode, allow the users to go up to 1000 moves! Like anyone could possibly do that :)
+  if(gameMode == MODE_BATTLE) moves_to_win_var = 1000; // If in battle mode, allow the users to go up to 1000 moves! Like anyone could possibly do that :)
 
   while (nmoves < moves_to_win_var) 
   {
-    uint8_t move;
-
     // Add a button to the current moves, then play them back
-    if(battle) 
+    if(gameMode == MODE_BATTLE) 
       add_to_moves_battle(); // If in battle mode, then listen for user input to choose the next step
     else 
       add_to_moves(); 
 
-    if(battle) 
+    if(gameMode == MODE_BATTLE) 
       ; // If in battle mode, then don't play back the pattern, it's up the the users to remember it - then add on a move.
     else 
       play_moves(); 
 
     // Then require the player to repeat the sequence.
-    for (move = 0; move < nmoves; move++) {
-      uint8_t choice = wait_for_button();
+    for (byte currentMove = 0 ; currentMove < nmoves ; currentMove++) {
+      byte choice = wait_for_button();
 
       // If wait timed out, player loses.
       if (choice == 0)
@@ -440,88 +515,34 @@ int game_mode(void)
       toner(choice, 150); 
 
       // If the choice is incorect, player loses.
-      if (choice != moves[move]) {
+      if (choice != moves[currentMove]) {
         return 0;
       }
     }
 
     // Player was correct, delay before playing moves
-    if(battle)
+    if(gameMode == MODE_BATTLE)
     {
       //reduced wait time, because we want to allow the battle to go very fast! 
       //plus, if you use the delay(1000), then it may miss capturing the users next input.
-      delay_ms(100); 
+      delay(100); 
     }
     else 
-      delay_ms(1000);
+      delay(1000);
   }
 
   // Player wins!
   return 1;
 }
 
-void setup()
-{
 
-}
-
-void loop()
-{
-
-  // Setup IO pins and defaults
-  ioinit(); 
-
-  // Check to see if LOWER LEFT BUTTON is pressed
-  if (check_button() == LED_YELLOW){
-    while(1){
-      buzz(5);
-      delay_ms(750);      
-      if (check_button() == 0x00){
-        while (1) beegees_loop();  
-      }
-    }
-  }
-
-  // Check to see if LOWER RIGHT BUTTON is pressed
-  if (check_button() == LED_GREEN){
-    while(1){
-      buzz(5);
-      delay_ms(750);      
-      if (check_button() == 0x00){
-        battle = 1;
-        break;  
-      }
-    }
-  }
-
-
-  play_winner();
-
-  // Main loop
-  while (1) {
-    // Wait for user to start game
-    attract_mode();
-
-    // Indicate the start of game play
-    set_leds(LED_RED|LED_GREEN|LED_BLUE|LED_YELLOW);
-    delay_ms(1000);
-    set_leds(0);
-    delay_ms(250);
-
-    // Play game and handle result
-    if (game_mode() != 0) {
-      // Player won, play winner tones
-      play_winner(); 
-    } 
-    else {
-      // Player lost, play loser tones
-      play_loser(); 
-    }
-  }
-}
-
+//These ints are for the begees loop funtion to work
+int counter = 0; // for cycling through the LEDs during the beegees loop
+int count = 20; // for keeping rhythm straight in the beegees loop
 //
-void beegees_loop()
+
+//playBeegees() does nothing but play bad beegees music
+void playBeegees()
 {
   buzz(3);
   delay(400);
@@ -593,18 +614,20 @@ void buzz(int tone){
   count = 40;
 
   // In order to keep all 5 notes the same length in time, you must compare them to the longest note (tonic)  - aka the "1" note.
-  count = count*(2000/freq);
+  count = count * (2000/freq);
 
   // this next function simply changes the next LED to turn on.
-  change_led();
+  changeLED();
 
   // this next for loop actually makes the buzzer pin move.
   // it uses the "count" variable to know how many times to play the frequency.
   // -this keeps the timing correct.
-  for(int i = 0; i < count; i++){
+  for(int i = 0 ; i < count ; i++)
+  {
     digitalWrite(BUZZER1, HIGH);
     digitalWrite(BUZZER2, LOW);
     delayMicroseconds(freq);
+
     digitalWrite(BUZZER1, LOW);
     digitalWrite(BUZZER2, HIGH);
     delayMicroseconds(freq);
@@ -631,8 +654,9 @@ void rest(int tone){
     freq = 1110;
   }
   //freq = (freq/2);
+
   count = 40;
-  count = count*(2000/freq);
+  count = count * (2000/freq);
   //change_led(); 
 
   for(int i = 0 ; i < count ; i++)
@@ -646,15 +670,10 @@ void rest(int tone){
 }
 
 //
-void change_led()
+void changeLED()
 {
-  if(counter > 3)
-  {
-    counter = 0; 
-  }
-  set_leds(1 << counter);
+  setLEDs(1 << counter);
+
   counter += 1;
+  if(counter > 3) counter = 0; 
 }
-
-
-
