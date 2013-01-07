@@ -52,7 +52,7 @@
 #define MODE_BEEGEES 2
 
 // Game state variables
-int gameMode = MODE_MEMORY; //By default, let's play the memory game
+byte gameMode = MODE_MEMORY; //By default, let's play the memory game
 byte gameBoard[32]; //Contains the combination of buttons as we advance
 byte gameRound = 0; //Counts the number of succesful rounds the player has made it through
 
