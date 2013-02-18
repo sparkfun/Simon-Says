@@ -42,6 +42,7 @@
  */
 
 #include "hardware_versions.h"
+#include "pitches.h" // Used for the MODE_BEEGEES, for playing the melody on the buzzer!
 
 // Define game parameters
 #define ROUNDS_TO_WIN      13 //Number of rounds to succesfully remember before you win. 13 is do-able.
@@ -404,10 +405,17 @@ void attractMode(void)
 }
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//The following functions are related to Beegees Easter Egg only
+// The following functions are related to Beegees Easter Egg only
 
+// Notes in the melody. Each note is about an 1/8th note, "0"s are rests.
+int melody[] = {
+  NOTE_G4, NOTE_A4, 0, NOTE_C5, 0, 0, NOTE_G4, 0, 0, 0,
+  NOTE_E4, 0, NOTE_D4, NOTE_E4, NOTE_G4, 0,
+  NOTE_D4, NOTE_E4, 0, NOTE_G4, 0, 0,
+  NOTE_D4, 0, NOTE_E4, 0, NOTE_G4, 0, NOTE_A4, 0, NOTE_C5, 0};
+
+int noteDuration = 115; // This essentially sets the tempo, 115 is just about right for a disco groove :)
 int LEDnumber = 0; // Keeps track of which LED we are on during the beegees loop
-int count = 20; // for keeping rhythm straight in the beegees loop
 
 // Do nothing but play bad beegees music
 // This function is activated when user holds bottom right button during power up
@@ -424,116 +432,23 @@ void play_beegees()
   setLEDs(CHOICE_NONE); // Turn off LEDs
 
   delay(1000); // Wait a second before playing song
+  
+  digitalWrite(BUZZER1, LOW); // setup the "BUZZER1" side of the buzzer to stay low, while we play the tone on the other pin.
 
   while(checkButton() == CHOICE_NONE) //Play song until you press a button
   {
-    buzz(3);
-    delay(400);
-    buzz(4);
-    rest(1);
-    delay(600);
-    buzz(5);
-    rest(1);
-    rest(1);
-    delay(400);
-    buzz(3);
-    rest(1);
-    rest(1);
-    rest(1);
-    buzz(2);
-    rest(1);
-    buzz(1);
-    buzz(2);
-    buzz(3);
-    rest(1);
-    buzz(1);
-    buzz(2);
-    rest(1);
-    buzz(3);
-    rest(1);
-    rest(1);   
-    buzz(1);
-    rest(1);
-    buzz(2);
-    rest(1);
-    buzz(3);
-    rest(1);
-    buzz(4);
-    rest(1);
-    buzz(5);
-    rest(1);
-    delay(700);
+    // iterate over the notes of the melody:
+    for (int thisNote = 0; thisNote < 32; thisNote++) {
+      changeLED();
+      tone(BUZZER2, melody[thisNote],noteDuration);
+      // to distinguish the notes, set a minimum time between them.
+      // the note's duration + 30% seems to work well:
+      int pauseBetweenNotes = noteDuration * 1.30;
+      delay(pauseBetweenNotes);
+      // stop the tone playing:
+      noTone(BUZZER2);
+    }
   }
-}
-
-//
-void buzz(int tone){
-
-  //Declare an integer, "freq", for frequency of the note to be played.
-  int freq;
-
-  //5 different tones to select. Each tone is a different frequency.
-  if(tone == 1) freq = 2000;
-  if(tone == 2) freq = 1800;
-  if(tone == 3) freq = 1500;
-  if(tone == 4) freq = 1350;
-  if(tone == 5) freq = 1110;
-
-  //freq = (freq/2);
-
-  // Because frequency is determined by the wavelength (the time HIGH and the time LOW),
-  // you need to have "count" in order to keep a note the same length in time.
-  // "count" is the number of times this function will repeat the HIGH/LOW pattern - to create the sound of the note.
-
-  count = 40;
-
-  // In order to keep all 5 notes the same length in time, you must compare them to the longest note (tonic)  - aka the "1" note.
-  count = count * (2000/freq);
-
-  // Change to the next LED
-  changeLED();
-
-  // this next for loop actually makes the buzzer pin move.
-  // it uses the "count" variable to know how many times to play the frequency.
-  // -this keeps the timing correct.
-  for(int i = 0 ; i < count ; i++)
-  {
-    digitalWrite(BUZZER1, HIGH);
-    digitalWrite(BUZZER2, LOW);
-    delayMicroseconds(freq);
-
-    digitalWrite(BUZZER1, LOW);
-    digitalWrite(BUZZER2, HIGH);
-    delayMicroseconds(freq);
-  }
-
-  delay(60);
-}
-
-//
-void rest(int tone){
-  int freq;
-  if(tone == 1) freq = 2000;
-  if(tone == 2) freq = 1800;
-  if(tone == 3) freq = 1500;
-  if(tone == 4) freq = 1350;
-  if(tone == 5) freq = 1110;
-
-  //freq = (freq/2);
-
-  count = 40;
-  count = count * (2000/freq);
-  //change_led(); 
-
-  for(int i = 0 ; i < count ; i++)
-  {
-    digitalWrite(BUZZER1, LOW);
-    delayMicroseconds(freq);
-    digitalWrite(BUZZER1, LOW);
-    delayMicroseconds(freq);
-  }
-
-  delay(75);
 }
 
 // Each time this function is called the board moves to the next LED

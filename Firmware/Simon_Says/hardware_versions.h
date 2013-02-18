@@ -15,8 +15,8 @@
 
 
 // Uncomment one of the following, corresponding to the board you have.
-//#define BOARD_REV_2_3_2011 //Works with PTH board label '2-3-2011'
-#define BOARD_REV_4_9_2009   //Works with SMD simoon board label '4/9/2009' and '9/7/11'
+#define BOARD_REV_2_3_2011 //Works with PTH board label '2-3-2011'
+//#define BOARD_REV_4_9_2009   //Works with SMD simoon board label '4/9/2009' and '9/7/11'
 //#define BOARD_REV_6_25_2008
 
 #ifdef BOARD_REV_2_3_2011
