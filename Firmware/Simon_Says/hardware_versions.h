@@ -15,8 +15,8 @@
 
 
 // Uncomment one of the following, corresponding to the board you have.
-#define BOARD_REV_2_3_2011 //Works with board label '2-3-2011'
-//#define BOARD_REV_4_9_2009
+//#define BOARD_REV_2_3_2011 //Works with PTH board label '2-3-2011'
+#define BOARD_REV_4_9_2009   //Works with SMD simoon board label '4/9/2009' and '9/7/11'
 //#define BOARD_REV_6_25_2008
 
 #ifdef BOARD_REV_2_3_2011
@@ -42,7 +42,7 @@
   #define LED_BLUE     13 //PORTB.5
   #define LED_YELLOW   5 //PORTD.5
   #define LED_RED      10 //PORTB.2
-  #define LED_GREEN    1 //PORTD.2 - This may conflict with TX
+  #define LED_GREEN    2 //PORTD.2
   
   // Button pin definitions
   #define BUTTON_RED     8 //PINB.0
