@@ -1,7 +1,7 @@
 Simon Says
 ==========
 
-[![Simon Says](https://dlnmh9ip6v2uc.cloudfront.net/images/products/1/0/5/4/7/Simon_Action.jpg
+[![Simon Says](https://dlnmh9ip6v2uc.cloudfront.net/images/products/1/0/5/4/7/Simon_Action.jpg)  
 *Simon Says (KIT-10547)*](https://www.sparkfun.com/products/10547)
 
 Simon Says is an open source hardware memory game that teaches through-hole soldering basics. 
