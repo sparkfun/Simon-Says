@@ -11,7 +11,7 @@ The firmware was developed in Arduino v1.0. The Eagle files were developed in Ea
 Repository Contents
 -------------------
 
-* **/Firmware** - Any firmware that the part ships with, 
+* **/Firmware** - Stock firmware the board ships with, as well as additional example code 
 * **/Hardware** - All Eagle design files (.brd, .sch, .STL)
 * **/Production** - Test bed files and production panel files
 
