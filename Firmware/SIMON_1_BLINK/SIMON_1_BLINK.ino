@@ -6,6 +6,10 @@ Pete Lewis
 Sparkfun Electronics 
 10/13/2010
 
+Modified by
+Prof Mike Soltys
+01/15/2013
+
 This example code is in the public domain.
 
 //////////////////////////////////////////////////
@@ -15,6 +19,12 @@ SETUP & UPLOAD INSTRUCTIONS
 3. Select "Tools", then "Board", then "LilyPad Arduino w/ ATmega328"
 4. Click on the "upload button" - it looks like a box with an arrow to the right.
 //////////////////////////////////////////////////
+
+//////////////////////////////////////////////////
+DESCRIPTION
+Causes one LED to blink continuously with one second increments
+//////////////////////////////////////////////////
+
 
 */
 
