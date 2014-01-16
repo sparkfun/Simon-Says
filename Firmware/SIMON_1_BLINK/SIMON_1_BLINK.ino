@@ -8,7 +8,8 @@ Sparkfun Electronics
 
 Modified by
 Prof Mike Soltys
-01/15/2013
+University of Colorado
+01/15/2014
 
 This example code is in the public domain.
 

@@ -1,11 +1,24 @@
 /*
-Simon Experiments #2
+Simon Experiments #3
 Buzzer
 Pete Lewis
 Sparkfun Electronics 
 10/13/2010
 
+Updated by 
+Prof Mike Soltys
+University of Colorado
+01/15/2014
+
 This example code is in the public domain.
+
+//////////////////////////////////////////////////
+DESCRIPTION
+Pressing the buttion will flash the LED for 1 second and play a tone.
+
+Note: these buttions are SUPER sensitive (freekishly so). The simon says code usese
+a delay and check process called debouncing to fix this.
+//////////////////////////////////////////////////
 
 */
 
@@ -19,7 +32,6 @@ int button_state;    // This variable will be used to "store" the state of the b
 /// By sending these HIGH/LOW we can create a sound from the buzzer.
 int buzzer_1 = 4;
 int buzzer_2 = 7;
-                    
 
 void setup()   {           
   pinMode(ledPin, OUTPUT);     
@@ -37,6 +49,7 @@ void setup()   {
 void loop()                     
 {
   int button_state = digitalRead(buttonPin);
+
   
   if(button_state == 1){
     
@@ -50,7 +63,6 @@ void loop()
   }
   
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////
 void buzz(){

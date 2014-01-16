@@ -6,6 +6,10 @@ Pete Lewis
 Sparkfun Electronics 
 10/13/2010
 
+Modified by
+Prof Mike Soltys
+University of Colorado
+01/15/14
 This example code is in the public domain.
 
 //////////////////////////////////////////////////
@@ -16,6 +20,13 @@ SETUP & UPLOAD INSTRUCTIONS
 4. Click on the "upload button" - it looks like a box with an arrow to the right.
 //////////////////////////////////////////////////
 
+//////////////////////////////////////////////////
+DESCRIPTION
+Pressing the buttion will change the state of the LED from on to off or off to on.
+
+Note: these buttions are SUPER sensitive (freakishly so). The simon says code usese
+a delay and check process called debouncing to fix this.
+//////////////////////////////////////////////////
 */
 
 
@@ -33,7 +44,8 @@ int buttonPin =  2; // The simon board has 4 BUTTONS on it.
 int button_state;   // This variable will be used to "store" the state of the button.
                     // It will allow us to know whether the button is pressed or not.
 
-
+int led_state = 0;      // This variable will be used to "store" the state of the LED.
+                    // It will allow us to know whether the LED is on or off.
 // The setup() funtion runs once, when the sketch starts
 
 void setup()   {                
@@ -61,9 +73,17 @@ void loop()
   // The second step in the loop is to actually do something with this variable.
   // In this next "if statement" we are going to decide to do something. Here we are going to turn on the ledPin for a second.
   if(button_state == 1){
-  digitalWrite(ledPin, HIGH);   // set the LED on
-  delay(1000);                  // wait for a second
-  digitalWrite(ledPin, LOW);    // set the LED off
+    // If the LED is off, turn it on
+    if (led_state == 0 ){
+      digitalWrite(ledPin, HIGH);   // set the LED on
+      led_state = 1; 
+      }
+     // If the LED is on, turn it off
+     else if (led_state == 1 ) {
+      digitalWrite(ledPin, LOW);    // set the LED off
+      led_state = 0;
+     }
+     delay(1000);              // wait for a second
   }
   
 }
