@@ -1,8 +1,14 @@
 /* 
 Make the Simon Says Game a 4-hole Ocarina (Like in the legend of zelda)
 
+Prof Mike Soltys
+University of Colorado
+1/28/2014
 */
-// Define the button, LED, and buzzer pins
+
+
+// Define the button, LED, and buzzer pins (this is standard for all Simon Says games
+// I've labeled mine UL for Upper Left, LR for Lower Left and so on.  
 const int led_UL = 10; //Red
 const int led_UR = 3; //Green
 const int led_LL = 13; //Blue
@@ -100,6 +106,7 @@ void loop() {
   digitalWrite(led_LR, HIGH);   
   tone(BUZZER2,523,50);    
   }      
+  
   // Turn off all LEDs
   digitalWrite(led_UR, LOW);
   digitalWrite(led_UL, LOW);
