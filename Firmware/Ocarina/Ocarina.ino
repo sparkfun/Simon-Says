@@ -40,21 +40,25 @@ void setup() {
 }
 
 void loop() {
+  // keep doing this over and over again.
+  // I will start with the most buttons pressed, and move on to the least buttons pressed
+  // for any combination, i'll play a matching note and light up the LEDs that aren't being pressed.
+  
   // Start with all buttons pressed - C4 - 262
   if (digitalRead(but_UL) == 0 && digitalRead(but_UR) == 0 && digitalRead(but_LL) == 0 && digitalRead(but_LR) == 0) {
   tone(BUZZER2,262,50);
   }
-  // uncover upper right - D4 - 294
+  // uncover upper right only - D4 - 294
   else  if (digitalRead(but_UL) == 0  && digitalRead(but_LL) == 0 && digitalRead(but_LR) == 0) {
   digitalWrite(led_UR, HIGH);
   tone(BUZZER2,294,50);
   }
-  // uncover lower right - E4 -330
+  // uncover lower right only - E4 -330
   else  if (digitalRead(but_UL) == 0 && digitalRead(but_UR) == 0  && digitalRead(but_LL) == 0) {
   tone(BUZZER2,330,50);
   digitalWrite(led_LR, HIGH);
   }
-  // uncover upper left - F4# -370
+  // uncover upper left only - F4# -370
   else  if (digitalRead(but_UR) == 0  && digitalRead(but_LL) == 0 && digitalRead(but_LR) == 0) {
   digitalWrite(led_UL, HIGH);
   tone(BUZZER2,370,50);
@@ -107,7 +111,8 @@ void loop() {
   tone(BUZZER2,523,50);    
   }      
   
-  // Turn off all LEDs
+  // Turn off all LEDs (This will happen so quick before 
+  // the next iteration through the loop, that you'll never notice it_
   digitalWrite(led_UR, LOW);
   digitalWrite(led_UL, LOW);
   digitalWrite(led_LL, LOW);  
