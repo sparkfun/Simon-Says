@@ -36,8 +36,9 @@ int buzzer_2 = 7;
 void setup()   {           
   pinMode(ledPin, OUTPUT);     
   
-  digitalWrite(buttonPin, HIGH);
-  pinMode(buttonPin, INPUT);     
+  // Note: For the way the circuit is setup, INPUT_PULLUP will result much more
+  // stability than INPUT
+  pinMode(buttonPin, INPUT_PULLUP);     
 
   pinMode(buzzer_1, OUTPUT);
   pinMode(buzzer_2, OUTPUT);
@@ -51,14 +52,21 @@ void loop()
   int button_state = digitalRead(buttonPin);
 
   
-  if(button_state == 1){
+  if(button_state == 0){
     
   digitalWrite(ledPin, HIGH);   // set the LED on
   delay(1000);                  // wait for a second
   digitalWrite(ledPin, LOW);    // set the LED off
   
   // Call the "buzz()" funtion. See below to know what this does.
-  buzz();
+  tone(buzzer_1,400,500);
+  delay(1000);
+  tone(buzzer_2,600,500);
+  delay(1000);
+  tone(buzzer_1,400,500);
+  delay(250);
+  tone(buzzer_2,600,500);
+  //tone(buzzer_1,500,100);
   
   }
   
