@@ -1,5 +1,5 @@
 /* 
- Make the Simon Says Game a 4-hole Ocarina (Like in the legend of zelda)
+ Code to 
  
  Prof Mike Soltys
  University of Colorado
@@ -8,7 +8,7 @@
 
 
 // Define the button, LED, and buzzer pins (this is standard for all Simon Says games
-// I've labeled mine UL for Upper Left, LR for Lower Left and so on.  
+// I've labeled mine UL for Upper Left, LR for Lower Left and so on. 
 const int led_UL = 10; //Red
 const int led_UR = 3; //Green
 const int led_LL = 13; //Blue
@@ -21,6 +21,13 @@ const int but_LR = 6;
 
 const int BUZZER1 = 4;
 const int BUZZER2 = 7;
+
+// We'll set up variables for each button, so Upper Left is Button 1,
+// Upper right is 2, etc.
+const int UL = 1;
+const int UR = 2;
+const int LL = 3;
+const int LR = 4;
 
 void setup() {
   //Setup hardware inputs/outputs. 
@@ -39,21 +46,42 @@ void setup() {
   pinMode(BUZZER2, OUTPUT);
 }
 
+// keep doing this over and over again.
 void loop() {
-  // keep doing this over and over again.
-  // I will start with the most buttons pressed, and move on to the least buttons pressed
-  // for any combination, i'll play a matching note and light up the LEDs that aren't being pressed.
+  // this calls the bit of code ButtonWait() which is found below
+  // the code waits untill a button is pressed, and then tells you which button was pressed
+  // (1, 2, 3, 4)
+  int Button = ButtonWait();
 
-  // Start with all buttons pressed - C4 - 262
-  int Button=ButtonWait();
-  delay(100); 
-  if (Button == 1){
+  // check to see if the button was the first one in our sequence (Upper Left)
+  if (Button == UL){
+    // if so, turn on the upper left button
     digitalWrite(led_UL, HIGH);
-    Button=ButtonWait();
-    if (Button==2){
-    digitalWrite(led_UR, HIGH);  
+    // and wait for another button to be pressed
+    Button = ButtonWait();
+    // now check to see if the second button (UR) in our sequence was pressed
+    if (Button == UR){
+      // if so, turn that button on and continue
+      digitalWrite(led_UR, HIGH);  
+      // play success tone!
+      tone(BUZZER1,399,1000);
+      // interesting fact: 399 Hz is the "most plesant" frequency
+      // http://www.ncbi.nlm.nih.gov/pubmed/503755
+
+      // if at any point a wrong button is pressed, the code will jump down
+      // to delay 1000, turn off the LEDs, and restart at the top of void loop()
+    }
+    // if the wrong button is pressed, play an unplesant sound
+    else {
+      tone(BUZZER1,2000,500);
     }
   }
+  // if the wrong button is pressed, play an unplesant sound
+  else {
+    tone(BUZZER1,2000,500);
+  }
+  
+  // wait a second and turn off all LEDS
   delay(1000);
   digitalWrite(led_UR, LOW);
   digitalWrite(led_UL, LOW);
@@ -61,27 +89,46 @@ void loop() {
   digitalWrite(led_LR, LOW);     
 }
 
+// Waits for a button to be pressed, then returns 1-4 to tell what button it was.
 int ButtonWait(void){
-while(1 == 1){
+  // this is always true, so this loop will keep going until it reaches a "return" command  
+  while(1 == 1){
+    // Check if the UL button is pressed
     if(digitalRead(but_UL) == 0){
-      while (digitalRead(but_UL) != 0) ;
-      delay(10);
-      return 1;
+      //wait till the user releases the button
+      while (digitalRead(but_UL) == 0){
+        delay(10);
+      }
+      // return what button was pressed
+      return(UL);
     }
+    // Check if the UR button is pressed
     else if(digitalRead(but_UR) == 0){
-      while (digitalRead(but_UR) != 0) ; 
-      delay(10);
-      return 2;
-    }       
+      //wait till the user releases the button
+      while (digitalRead(but_UR) == 0){
+        delay(10);
+      }
+      // return what button was pressed
+      return(UR);
+    }
+    // and so on.    
     else if(digitalRead(but_LL) == 0){
-      while (digitalRead(but_LL) != 0) ;
-      delay(10);
-      return 3;
+      while (digitalRead(but_LL) == 0){ 
+        delay(10);
+      }
+      return(LL);
     }  
     else if(digitalRead(but_LR) == 0){
-      while (digitalRead(but_LR) != 0) ;
-      delay(10);
-      return 4;
+      while (digitalRead(but_LR) == 0){ 
+        delay(10);
+      }
+      return(LR);
     }
+    // if we get here, nothing has been pressed, and so we'll restart at the top of
+    // the loop while (1==1).  
   }
 }
+
+
+
+
