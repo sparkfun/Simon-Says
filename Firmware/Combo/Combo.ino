@@ -1,9 +1,11 @@
 /* 
- Code to 
+ Code checks for combination in order. Must press upper left button, then upper right button,
+ then lower left for success.  Any wrong button will result in an unplesant sound, 
+ and the code will reset.
  
  Prof Mike Soltys
  University of Colorado
- 1/28/2014
+ 1/31/2014
  */
 
 
@@ -63,13 +65,22 @@ void loop() {
     if (Button == UR){
       // if so, turn that button on and continue
       digitalWrite(led_UR, HIGH);  
-      // play success tone!
-      tone(BUZZER1,399,1000);
-      // interesting fact: 399 Hz is the "most plesant" frequency
-      // http://www.ncbi.nlm.nih.gov/pubmed/503755
+      Button = ButtonWait();
+      if (Button == LL){
+        // if so, turn that button on and continue
+        digitalWrite(led_LL, HIGH);  
+        // play success tone!
+        tone(BUZZER1,399,1000);
+        // interesting fact: 399 Hz is the "most plesant" frequency
+        // http://www.ncbi.nlm.nih.gov/pubmed/503755
 
-      // if at any point a wrong button is pressed, the code will jump down
-      // to delay 1000, turn off the LEDs, and restart at the top of void loop()
+        // if at any point a wrong button is pressed, the code will jump down
+        // to delay 1000, turn off the LEDs, and restart at the top of void loop()
+      }
+      // if the wrong button is pressed, play an unplesant sound
+      else {
+        tone(BUZZER1,2000,500);
+      }
     }
     // if the wrong button is pressed, play an unplesant sound
     else {
@@ -80,7 +91,7 @@ void loop() {
   else {
     tone(BUZZER1,2000,500);
   }
-  
+
   // wait a second and turn off all LEDS
   delay(1000);
   digitalWrite(led_UR, LOW);
@@ -128,6 +139,7 @@ int ButtonWait(void){
     // the loop while (1==1).  
   }
 }
+
 
 
 
