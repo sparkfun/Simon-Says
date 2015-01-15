@@ -2,7 +2,7 @@
 
 The .sch and .brd files hare are Eagle CAD schematic and PCB design files.
 
-These files were created with Eagle 5.1.0, you'll need Eagle 5.0 or later to open them up. There is a free, lite, version of Eagle available from [cadsoftusa.com](http://www.cadsoftusa.com/download-eagle/freeware).
+These files were created with Eagle 5.1.0, you'll need Eagle 5.0 or later to open them up. There is a free, lite, version of Eagle available from ([cadsoftusa.com](http://www.cadsoftusa.com/download-eagle/freeware)).
 
 
 # License
