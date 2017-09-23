@@ -15,12 +15,18 @@ Repository Contents
 * **/Hardware** - All Eagle design files (.brd, .sch, .STL)
 * **/Production** - Test bed files and production panel files
 
+Documentation
+----------------
+* [Simon Says Assembly Guide](https://learn.sparkfun.com/tutorials/simon-says-assembly-guide) - Assembly guide for Simon Says Kit.
+* [Simon Tweak](https://www.sparkfun.com/tutorials/203) - Tutorial explaining how to reprogram the Simon board with the Arduino IDE.
+* [Simon Splosion Wireless Tutorial](https://learn.sparkfun.com/tutorials/simon-splosion-wireless) - Tutorial for hacking two Simons in order to  wirelessly play "battle mode" using the _Simon_Wireless.ino_ example code.
 
 Product Versions
 ----------------
 * [KIT-10547](https://www.sparkfun.com/products/10547)- Through-hole Simon Says Kit
+* [KIT-13708](https://www.sparkfun.com/products/13708) - Learn to Solder - Simon Says Kit
 * [RTL-10546](https://www.sparkfun.com/products/10546)- Retail package of the PTH Simon Says Kit
-* [Lab-11030] (https://www.sparkfun.com/products/11030)- The Simon Lab Pack with 15 Simon Says Kits and supplies
+* [LAB-11030](https://www.sparkfun.com/products/11030)- The Simon Lab Pack with 15 Simon Says Kits and supplies
 
 License Information
 -------------------
