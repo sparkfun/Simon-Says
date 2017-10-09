@@ -2,7 +2,7 @@
 Simon Experiments #3
 Buzzer
 Pete Lewis
-Sparkfun Electronics 
+SparkFun Electronics 
 10/13/2010
 
 Updated by 
@@ -10,19 +10,18 @@ Prof Mike Soltys
 University of Colorado
 01/15/2014
 
+Ho Yun "Bobby" Chan
+SparkFun Electronics
+10/8/2017
+
 This example code is in the public domain.
 
 //////////////////////////////////////////////////
 DESCRIPTION
 Pressing the buttion will flash the LED for 1 second and play a tone.
-
-Note: these buttions are SUPER sensitive (freekishly so). The simon says code usese
-a delay and check process called debouncing to fix this.
 //////////////////////////////////////////////////
 
 */
-
-
 
 int ledPin =  3;     // LEDs are on pins 3,5,10 and 13.
 int buttonPin =  2;  // BUTTONS are on pins 2,6,9 and 12.  
@@ -49,8 +48,7 @@ void setup()   {
 
 void loop()                     
 {
-  int button_state = digitalRead(buttonPin);
-
+  button_state = digitalRead(buttonPin);
   
   if(button_state == 0){
     
